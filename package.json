@@ -1,0 +1,15 @@
+{
+  "name": "reangulact-ng",
+  "version": "0.0.1",
+  "description": "The layer between Reangulact and Angular",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "angular2": "^2.0.0-beta.8",
+    "reangulact": "git://github.com/keffidesign/reangulact.git"
+  }
+}
