@@ -1,6 +1,5 @@
 import {Component as ReangulactComponent} from 'reangulact';
 import AngularComponent from './AngularComponent.es6';
-import {Injector, Inject,Component, View, DynamicComponentLoader,ElementRef, ViewEncapsulation} from 'angular2/core';
 
 export {prepare} from './AngularUtils.es6';
 

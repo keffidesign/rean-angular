@@ -1,4 +1,4 @@
-import {provide, Injector, Inject,Component,   DynamicComponentLoader, ViewEncapsulation} from 'angular2/core';
+import {provide, Injector, Inject,Component, Class,  DynamicComponentLoader, ViewEncapsulation} from 'angular2/core';
 
 export default {
 
