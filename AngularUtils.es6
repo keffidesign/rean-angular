@@ -102,7 +102,12 @@ function parseBindingExpression(p) {
         return `${p.replace(/\:(\w+(\.\w+)*)/g, (s, s1)=>(`get('${s1}')`))}`;
     }
 
-    return `'${p.replace(/\(?\:(\w+(\.\w+)*)\)?/g, (s, s1)=>(`'+get('${s1}')+'`))}'`;
+    if (p[0] === '(' && p.endsWith(')')) {
+
+        return `'${p.slice(1, p.length-1).replace(/\(?\:(\w+(\.\w+)*)\)?/g, (s, s1)=>(`'+get('${s1}')+'`))}'`;
+    }
+
+    return p;
 }
 
 export function resolveNativeProp(k, v) {

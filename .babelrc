@@ -1,0 +1,8 @@
+//Isn't used at the moment.
+//But seems that it should work
+{
+    "presets": [
+        "stage-0",
+        "es2015"
+    ]
+}
