@@ -1,10 +1,10 @@
-import {provide, Injector, Inject,Component, Class,  DynamicComponentLoader, ViewEncapsulation} from 'angular2/core';
+import {provide, Injector, Inject,Component, DynamicComponentLoader} from 'angular2/core';
 
 export default {
 
     internalConstructor(opts) {
 
-        this.log('constructor', {...this}, opts, this.state, this.getDefaults());
+        this.log('constructor');
 
         this.state={...this.getDefaults()};
     }
@@ -20,8 +20,6 @@ export default {
 
         this.log('init', this);
 
-        this.update(this.props);
-
         this.init();
     },
 
@@ -35,6 +33,8 @@ export default {
         if(diff.props) {
 
             this.log('changes props', diff.props);
+
+            this.update(diff.props.currentValue);
         }
 
         if(diff.children) {

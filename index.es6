@@ -1,5 +1,7 @@
 import {Component as ReangulactComponent} from 'reangulact';
-import AngularComponent from './AngularComponent.es6';
+import { default as _AngularComponent} from './AngularComponent.es6';
+
+export const AngularComponent = _AngularComponent;
 
 export {prepare} from './AngularUtils.es6';
 
@@ -8,6 +10,6 @@ export {prepare} from './AngularUtils.es6';
  */
 export function initialize() {
 
-    Object.assign(ReangulactComponent.prototype, AngularComponent);
+    Object.assign(ReangulactComponent.prototype, _AngularComponent);
 }
 

@@ -1,4 +1,5 @@
 import {capitalize,properify, dashify} from 'reangulact/utils.es6';
+import {Injector, Inject, Component,   DynamicComponentLoader, ViewEncapsulation} from 'angular2/core';
 
 const PROP_ADAPTERS = {
     'id': (v) => `id="${v}"`
@@ -12,8 +13,6 @@ const PROP_ADAPTERS = {
     ,
     'if': (v) => `*ngIf="get('${v.slice(1)}')"`
     ,
-    'click': (v) => `(onclick)="${v.slice(1)}($event)"`
-    ,
     style(v){
         return (typeof v === 'string') ? v.split(';')
             .reduce((p, q, i, arr, kv = q.split(':'))=>(p[properify(kv[0])] = kv[1], p), {}) : v;
@@ -22,10 +21,9 @@ const PROP_ADAPTERS = {
 
 const VALUE_ADAPTERS = {
     '': (v)=>`{{${v}}}`,
-    'style': (v)=>'[style]',
-    'click': (v)=>`(onclick)="${v}($event)"`,
-    'change': (v)=>`(onchange)="${v}()"`,
-    'scroll': (v)=>`(onScroll)="${v}()"`
+    'click': (v)=>`(click)="${v}()"`,
+    'change': (v)=>`(change)="${v}()"`,
+    'scroll': (v)=>`(scroll)="${v}()"`
     ,
     ['class'](v){
         //console.log('class', v);
@@ -49,7 +47,7 @@ export function prepare(ctor) {
         ,
         inputs: ['props', 'children']
         ,
-        template: createElement.apply(ctor, ctor.prototype.render())
+        template: `<div (onclick)="clicked()">123</div>`//createElement.apply(ctor, ctor.prototype.render())
         ,
         directives: [...ctor._directives.values()]
 
@@ -168,7 +166,7 @@ function resolveComponentProp(k, v) {
 
     let value = [parseBindingExpression(p), ...pipes].join('|');
 
-    return value;//(VALUE_ADAPTERS[k] || VALUE_ADAPTERS['**']).call(this, value, k);
+    return value;
 }
 
 export function stringifyComponent(type, props, children) {
@@ -176,8 +174,6 @@ export function stringifyComponent(type, props, children) {
     const prefix = `${type} ${props.join(' ')}`;
 
     const str = (type !== 'input' && type !== 'img') ? `<${prefix}>${children ? children.join('') : ''}</${type}>` : `<${prefix}/>`;
-
-    console.log(str);
 
     return str;
 
