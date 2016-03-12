@@ -1,5 +1,3 @@
-import {provide, Injector, Inject,Component, DynamicComponentLoader} from 'angular2/core';
-
 export default {
 
     internalConstructor(opts) {
@@ -25,6 +23,8 @@ export default {
 
     ngOnDestroy() {
 
+        this.state = null;
+
         this.done();
     },
 
@@ -39,7 +39,9 @@ export default {
 
         if(diff.children) {
 
-            this.injector.get(DynamicComponentLoader).loadAsRoot(
+            const {Component, DynamicComponentLoader,ooo} = ng.core;
+
+            this.dcl.loadAsRoot(
                 Component({template:decodeURIComponent(this.children)}).Class({constructor:[function Fake(){}]})
                 ,
                 `#children_${this._id}`);

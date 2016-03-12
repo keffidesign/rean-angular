@@ -1,5 +1,6 @@
 import {capitalize,properify, dashify} from 'reangulact/utils.es6';
-import {Injector, Inject, Component,   DynamicComponentLoader, ViewEncapsulation} from 'angular2/core';
+
+const {Component, DynamicComponentLoader} = ng.core;
 
 const PROP_ADAPTERS = {
     'id': (v) => `id="${v}"`
@@ -12,6 +13,8 @@ const PROP_ADAPTERS = {
     }
     ,
     'if': (v) => `*ngIf="get('${v.slice(1)}')"`
+    ,
+    'ifNot': (v) => `*ngIf="!get('${v.slice(1)}')"`
     ,
     style(v){
         return (typeof v === 'string') ? v.split(';')
@@ -35,19 +38,24 @@ const VALUE_ADAPTERS = {
     '**': (v, k)=>`${k}:"${v}"`
 };
 
+function log(val){
+    console.log('temiuplate',val);
+    return val;
+}
+
 export function prepare(ctor) {
 
     if (ctor.prepared) return ctor.prepared;
 
     ctor._directives = new Map();
 
-    return ctor.prepared = Component({
+    return Component({
 
         selector: dashify(ctor.name)
         ,
         inputs: ['props', 'children']
         ,
-        template: `<div (onclick)="clicked()">123</div>`//createElement.apply(ctor, ctor.prototype.render())
+        template: log(createElement.apply(ctor, ctor.prototype.render()))
         ,
         directives: [...ctor._directives.values()]
 
@@ -55,9 +63,10 @@ export function prepare(ctor) {
 
         extends : ctor,
 
-        constructor: [[new Inject(Injector)], function (injector){//[new Inject(ElementRef)],
-            this.injector = injector;
-            // this.elementRef = elRef;
+        constructor: [DynamicComponentLoader, function (dcl){
+
+            this.dcl = dcl;
+
             ctor.call(this);
         }]
 
@@ -68,6 +77,12 @@ function createElement(type, props, ...children) {
 
     if (type==='children'){
         return `<div [id]="'children_'+_id"></div>`
+    }
+
+    if (props && props.if){
+        const ifNot = props.if;
+
+        children.filter((c)=>(c[0]==='else')).forEach(c=> (c[1] = {...c[1], ifNot}))
     }
 
     if (typeof type !== 'string') {
