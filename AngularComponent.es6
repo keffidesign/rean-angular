@@ -1,10 +1,11 @@
+let saltt =1;
 export default {
 
     internalConstructor(opts) {
 
-        this.log('constructor');
+        this.log('constructorr', this);
 
-        this.state={...this.getDefaults()};
+        this.state={...this.getDefaults(), _sald: `${++saltt}`};
     }
     ,
     setState(newState, cb) {
@@ -21,6 +22,11 @@ export default {
         this.init();
     },
 
+    ngOnActivate() {
+
+        this.log('ngOnActivate', this);
+    },
+
     ngOnDestroy() {
 
         this.state = null;
@@ -30,9 +36,10 @@ export default {
 
     ngOnChanges(diff){
 
+        this.log('changes', diff);
+
         if(diff.props) {
 
-            this.log('changes props', diff.props);
 
             this.update(diff.props.currentValue);
         }

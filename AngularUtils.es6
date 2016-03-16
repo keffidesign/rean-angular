@@ -1,6 +1,6 @@
 import {capitalize,properify, dashify} from 'reangulact/utils.es6';
 
-const {Component, DynamicComponentLoader} = ng.core;
+const {Component, DynamicComponentLoader, ChangeDetectionStrategy, ViewEncapsulation} = ng.core;
 
 const PROP_ADAPTERS = {
     'id': (v) => `id="${v}"`
@@ -55,6 +55,10 @@ export function prepare(ctor) {
         ,
         inputs: ['props', 'children']
         ,
+        changeDetection:ChangeDetectionStrategy.OnPush
+        ,
+        encapsulation: ViewEncapsulation.Emulated
+        ,
         template: log(createElement.apply(ctor, ctor.prototype.render()))
         ,
         directives: [...ctor._directives.values()]
@@ -66,6 +70,8 @@ export function prepare(ctor) {
         constructor: [DynamicComponentLoader, function (dcl){
 
             this.dcl = dcl;
+
+            this.props=null;
 
             ctor.call(this);
         }]
@@ -163,9 +169,10 @@ export function resolveComponentProps(props, children) {
 
     const result = Object.keys(propsObj || {}).map(p => `${p}: ${propsObj[p]}`);
     if (result.length) {
+
         newProps.push(`[props]="{${result.join(', ')}}"`);
     }
-    if (children.length){
+    if (children.length) {
         newProps.push(`children="${encodeURIComponent(children.map(c => (typeof c === 'string') ? resolveNativeProp.call(this, '', c.trim()) : createElement.apply(this, c)))}"`);
     }
     return newProps;
