@@ -1,11 +1,12 @@
-let saltt =1;
+const {Component} = ng.core;
+
 export default {
 
     internalConstructor(opts) {
 
-        this.log('constructorr', this);
+        this.state={...this.getDefaults()};
 
-        this.state={...this.getDefaults(), _sald: `${++saltt}`};
+        this.log('constructorr', this);
     }
     ,
     setState(newState, cb) {
@@ -22,11 +23,6 @@ export default {
         this.init();
     },
 
-    ngOnActivate() {
-
-        this.log('ngOnActivate', this);
-    },
-
     ngOnDestroy() {
 
         this.state = null;
@@ -40,13 +36,10 @@ export default {
 
         if(diff.props) {
 
-
             this.update(diff.props.currentValue);
         }
 
         if(diff.children) {
-
-            const {Component, DynamicComponentLoader,ooo} = ng.core;
 
             this.dcl.loadAsRoot(
                 Component({template:decodeURIComponent(this.children)}).Class({constructor:[function Fake(){}]})

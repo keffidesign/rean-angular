@@ -1,6 +1,7 @@
 import {capitalize,properify, dashify} from 'reangulact/utils.es6';
 
 const {Component, DynamicComponentLoader, ChangeDetectionStrategy, ViewEncapsulation} = ng.core;
+const {ROUTER_DIRECTIVES} = ng.router;
 
 const PROP_ADAPTERS = {
     'id': (v) => `id="${v}"`
@@ -13,6 +14,8 @@ const PROP_ADAPTERS = {
     }
     ,
     'if': (v) => `*ngIf="get('${v.slice(1)}')"`
+    ,
+    'router': (v) => `[routerLink]="/${v}"`
     ,
     'ifNot': (v) => `*ngIf="!get('${v.slice(1)}')"`
     ,
@@ -49,6 +52,15 @@ export function prepare(ctor) {
 
     ctor._directives = new Map();
 
+    const nctor = function (dcl){
+
+        this.dcl = dcl;
+
+        ctor.call(this);
+    };
+
+    //nctor.name = ctor.name;
+
     return Component({
 
         selector: dashify(ctor.name)
@@ -61,20 +73,13 @@ export function prepare(ctor) {
         ,
         template: log(createElement.apply(ctor, ctor.prototype.render()))
         ,
-        directives: [...ctor._directives.values()]
+        directives: [...ctor._directives.values(), ROUTER_DIRECTIVES]
 
     }).Class({
 
         extends : ctor,
 
-        constructor: [DynamicComponentLoader, function (dcl){
-
-            this.dcl = dcl;
-
-            this.props=null;
-
-            ctor.call(this);
-        }]
+        constructor: [DynamicComponentLoader, nctor]
 
     });
 }
