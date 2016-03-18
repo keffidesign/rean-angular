@@ -4,9 +4,9 @@ export default {
 
     internalConstructor(opts) {
 
-        this.state={...this.getDefaults()};
-
         this.log('constructorr', this);
+
+        this.state={...this.getDefaults()};
     }
     ,
     setState(newState, cb) {

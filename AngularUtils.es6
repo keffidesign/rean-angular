@@ -15,7 +15,7 @@ const PROP_ADAPTERS = {
     ,
     'if': (v) => `*ngIf="get('${v.slice(1)}')"`
     ,
-    'router': (v) => `[routerLink]="/${v}"`
+    'router': (v) => `[routerLink]="['/${v}']"`
     ,
     'ifNot': (v) => `*ngIf="!get('${v.slice(1)}')"`
     ,
@@ -52,15 +52,6 @@ export function prepare(ctor) {
 
     ctor._directives = new Map();
 
-    const nctor = function (dcl){
-
-        this.dcl = dcl;
-
-        ctor.call(this);
-    };
-
-    //nctor.name = ctor.name;
-
     return Component({
 
         selector: dashify(ctor.name)
@@ -79,7 +70,12 @@ export function prepare(ctor) {
 
         extends : ctor,
 
-        constructor: [DynamicComponentLoader, nctor]
+        constructor: [DynamicComponentLoader, function (dcl){
+
+            this.dcl = dcl;
+
+            ctor.call(this);
+        }]
 
     });
 }
