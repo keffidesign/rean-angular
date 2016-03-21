@@ -15,8 +15,6 @@ const PROP_ADAPTERS = {
     ,
     'if': (v) => `*ngIf="get('${v.slice(1)}')"`
     ,
-    'router': (v) => `[routerLink]="['/${v}']"`
-    ,
     'ifNot': (v) => `*ngIf="!get('${v.slice(1)}')"`
     ,
     style(v){
