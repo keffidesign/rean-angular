@@ -23,7 +23,7 @@ const PROP_ADAPTERS = {
                 const kv = q.split(':');
                 const k = kv[0].trim();
                 if (k){
-                    p[k] = kv[1].trim();
+                    p[k] = (kv[1]||'').trim();
                 }
                 return p;
             }, {}) : v;
@@ -90,11 +90,10 @@ function createElement(type='undefined', props, ...children) {
     if (type==='children'){
         return `<ng-content></ng-content>`
     }
-
+    let after='';
     if (props && props.if){
         const ifNot = props.if;
-
-        children.filter((c)=>(c[0]==='else')).forEach(c=> (c[1] = {...c[1], ifNot}))
+        after = children.filter((c)=>(c[0]==='else')).map(c => createElement.apply(this, ['block', {ifNot}, c[2]])).join('')
     }
 
     if (type==='block'){
@@ -102,13 +101,16 @@ function createElement(type='undefined', props, ...children) {
         if (props && props.if){
             props2.push(`[ngIf]="get('${props.if.slice(1)}')"`)
         }
+        if (props && props.ifNot){
+            props2.push(`[ngIf]="!get('${props.ifNot.slice(1)}')"`)
+        }
         if (props && props.each){
 
             props2.push(`ngFor #${varId} [ngForOf]="get('${dataId.slice(1)}')"`)
         }
         return stringifyComponent('template', props2,
             children.map(c => (typeof c === 'string') ? resolveNativeProp.call(this, '', c.trim()) : createElement.apply(this, c))
-        );
+        )+after;
     }
 
     if (typeof type !== 'string') {
@@ -121,14 +123,14 @@ function createElement(type='undefined', props, ...children) {
 
         return stringifyComponent(typeName, props,
             children.map(c => (typeof c === 'string') ? resolveNativeProp.call(this, '', c.trim()) : createElement.apply(this, c))
-        );
+        )+after;
     }
 
     return stringifyComponent(type,
         Object.keys(props || {}).map((k) =>(resolveNativeProp.call(this, k, props[k])))
         ,
         children.map(c => (typeof c === 'string') ? resolveNativeProp.call(this, '', c.trim()) : createElement.apply(this, c))
-    );
+    )+after;
 }
 
 function parseBindingExpression(p) {
@@ -140,12 +142,12 @@ function parseBindingExpression(p) {
 
     if (p[0] === '{' && p.endsWith('}')) {
 
-        return `${p.replace(/\:(\w+(\.\w+)*)/g, (s, s1)=>(`get('${s1}')`))}`;
+        return `${p.replace(/\(:(\w+(\.\w+)*)\)/g, (s, s1)=>(`get('${s1}')`))}`;
     }
 
     if (p[0] === '(' && p.endsWith(')')) {
 
-        return `'${p.slice(1, p.length-1).replace(/\(?\:(\w+(\.\w+)*)\)?/g, (s, s1)=>(`'+get('${s1}')+'`))}'`;
+        return `'${p.slice(1, p.length-1).replace(/\(:(\w+(\.\w+)*?)\)/g, (s, s1)=>(`'+get('${s1}')+'`))}'`;
     }
 
     return p;
