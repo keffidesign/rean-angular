@@ -4,7 +4,7 @@ export default {
 
     internalConstructor(opts) {
 
-        this.log('constructorr', this);
+       // this.log('constructorr', this);
 
         this.state={...this.getDefaults()};
     }
@@ -18,7 +18,7 @@ export default {
 
     ngOnInit() {
 
-        this.log('init', this);
+        //this.log('init', this);
 
         this.init();
     },
@@ -32,7 +32,7 @@ export default {
 
     ngOnChanges(diff){
 
-        this.log('changes', diff);
+       //this.log('changes', diff);
 
         if(diff.props) {
 

@@ -18,8 +18,17 @@ const PROP_ADAPTERS = {
     'ifNot': (v) => `*ngIf="!get('${v.slice(1)}')"`
     ,
     style(v){
-        return (typeof v === 'string') ? v.split(';')
-            .reduce((p, q, i, arr, kv = q.split(':'))=>(p[properify(kv[0])] = kv[1], p), {}) : v;
+        const obj = (typeof v === 'string') ? v.split(';')
+            .reduce((p, q)=>{
+                const kv = q.split(':');
+                const k = kv[0].trim();
+                if (k){
+                    p[k] = kv[1].trim();
+                }
+                return p;
+            }, {}) : v;
+
+        return `style="${Object.keys(obj).map(k=>`${k}:${obj[k]}`).join(';')}"`
     }
 };
 
@@ -40,7 +49,7 @@ const VALUE_ADAPTERS = {
 };
 
 function log(val){
-    console.log('temiuplate',val);
+    //console.log('temiuplate',val);
     return val;
 }
 
@@ -76,7 +85,7 @@ export function prepare(ctor) {
     });
 }
 
-function createElement(type, props, ...children) {
+function createElement(type='undefined', props, ...children) {
 
     if (type==='children'){
         return `<ng-content></ng-content>`
@@ -86,6 +95,20 @@ function createElement(type, props, ...children) {
         const ifNot = props.if;
 
         children.filter((c)=>(c[0]==='else')).forEach(c=> (c[1] = {...c[1], ifNot}))
+    }
+
+    if (type==='block'){
+        const props2=[]
+        if (props && props.if){
+            props2.push(`[ngIf]="get('${props.if.slice(1)}')"`)
+        }
+        if (props && props.each){
+
+            props2.push(`ngFor #${varId} [ngForOf]="get('${dataId.slice(1)}')"`)
+        }
+        return stringifyComponent('template', props2,
+            children.map(c => (typeof c === 'string') ? resolveNativeProp.call(this, '', c.trim()) : createElement.apply(this, c))
+        );
     }
 
     if (typeof type !== 'string') {
