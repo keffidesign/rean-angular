@@ -1,4 +1,4 @@
-const {Component} = ng.core;
+const {Component, DynamicComponentLoader} = ng.core;
 
 export default {
 
@@ -39,12 +39,19 @@ export default {
             this.update(diff.props.currentValue);
         }
 
-        if(diff.children) {
-
-            this.dcl.loadAsRoot(
-                Component({template:decodeURIComponent(this.children)}).Class({constructor:[function Fake(){}]})
-                ,
-                `#children_${this._id}`);
-        }
+        //if(diff.children) {
+        //
+        //    this._dcl.loadIntoLocation(
+        //        Component({
+        //            template:decodeURIComponent(this.children),
+        //            directives: [...this._directives.values()]
+        //        }).Class({constructor:[function Fake(){
+        //
+        //        }]})
+        //        ,
+        //        this._ref
+        //        ,
+        //        `children_${this._id}`);
+        //}
     }
 }

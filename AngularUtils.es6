@@ -1,6 +1,6 @@
 import {capitalize,properify, dashify} from 'reangulact/utils.es6';
 
-const {Component, DynamicComponentLoader, ChangeDetectionStrategy, ViewEncapsulation} = ng.core;
+const {Component, DynamicComponentLoader, ElementRef} = ng.core;
 const {ROUTER_DIRECTIVES} = ng.router;
 
 const PROP_ADAPTERS = {
@@ -54,11 +54,7 @@ export function prepare(ctor) {
 
         selector: dashify(ctor.name)
         ,
-        inputs: ['props', 'children']
-        ,
-        changeDetection:ChangeDetectionStrategy.OnPush
-        ,
-        encapsulation: ViewEncapsulation.Emulated
+        inputs: ['props']
         ,
         template: log(createElement.apply(ctor, ctor.prototype.render()))
         ,
@@ -68,9 +64,11 @@ export function prepare(ctor) {
 
         extends : ctor,
 
-        constructor: [DynamicComponentLoader, function (dcl){
+        constructor: [DynamicComponentLoader,ElementRef, function (dcl, ref){
 
-            this.dcl = dcl;
+            this._dcl = dcl;
+            this._ref = ref;
+            this._directives = ctor._directives;
 
             ctor.call(this);
         }]
@@ -81,7 +79,7 @@ export function prepare(ctor) {
 function createElement(type, props, ...children) {
 
     if (type==='children'){
-        return `<div [id]="'children_'+_id"></div>`
+        return `<ng-content></ng-content>`
     }
 
     if (props && props.if){
@@ -96,9 +94,11 @@ function createElement(type, props, ...children) {
 
         this._directives.set(typeName, prepare(type));
 
-        props = this::resolveComponentProps(props, children);
+        props = this::resolveComponentProps(props);
 
-        return stringifyComponent(typeName, props);
+        return stringifyComponent(typeName, props,
+            children.map(c => (typeof c === 'string') ? resolveNativeProp.call(this, '', c.trim()) : createElement.apply(this, c))
+        );
     }
 
     return stringifyComponent(type,
@@ -171,14 +171,14 @@ export function resolveComponentProps(props, children) {
 
         newProps.push(`[props]="{${result.join(', ')}}"`);
     }
-    if (children.length) {
-        newProps.push(`children="${encodeURIComponent(children.map(c => (typeof c === 'string') ? resolveNativeProp.call(this, '', c.trim()) : createElement.apply(this, c)))}"`);
-    }
+    //if (children.length) {
+    //    newProps.push(`children="${encodeURIComponent(children.map(c => (typeof c === 'string') ? resolveNativeProp.call(this, '', c.trim()) : createElement.apply(this, c)))}"`);
+    //}
     return newProps;
 
 };
 
-function resolveComponentProp(k, v) {
+function resolveComponentProp(k: string, v) {
 
 
     if (!v || v[0] !== ':') return `'${v}'`;
