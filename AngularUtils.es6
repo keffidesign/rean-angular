@@ -10,7 +10,7 @@ const PROP_ADAPTERS = {
 
         const [varId, op, dataId] = v.split(' ');
 
-        return `*ngFor="#${varId} of get('${dataId.slice(1)}')" attr.data-index="{{setState({'${varId}':${varId}})}}"`;
+        return `*ngFor="#${varId} of get('${dataId.slice(1)}')" attr.data-index="{{setState({'${varId}':${varId}})?${varId}:${varId}}}"`;
     }
     ,
     'if': (v) => `*ngIf="get('${v.slice(1)}')"`
@@ -18,6 +18,14 @@ const PROP_ADAPTERS = {
     'ifNot': (v) => `*ngIf="!get('${v.slice(1)}')"`
     ,
     style(v){
+
+        if (!v) return '';
+
+        if (v[0]===':'){
+            v = parseBindingExpression(v.slice(1));
+            return `[style]="${v}"`;
+        }
+
         const obj = (typeof v === 'string') ? v.split(';')
             .reduce((p, q)=>{
                 const kv = q.split(':');
@@ -34,9 +42,9 @@ const PROP_ADAPTERS = {
 
 const VALUE_ADAPTERS = {
     '': (v)=>`{{${v}}}`,
-    'click': (v)=>`(click)="${v}()"`,
-    'change': (v)=>`(change)="${v}()"`,
-    'scroll': (v)=>`(scroll)="${v}()"`
+    'click': (v)=>`(click)="${v}($event)"`,
+    'change': (v)=>`(change)="${v}($event)"`,
+    'scroll': (v)=>`(scroll)="${v}($event)"`
     ,
     ['class'](v){
         //console.log('class', v);
@@ -49,7 +57,7 @@ const VALUE_ADAPTERS = {
 };
 
 function log(val){
-    //console.log('temiuplate',val);
+    console.log('==',val);
     return val;
 }
 
@@ -65,7 +73,7 @@ export function prepare(ctor) {
         ,
         inputs: ['props']
         ,
-        template: log(createElement.apply(ctor, ctor.prototype.render()))
+        template: (createElement.apply(ctor, ctor.prototype.render()))
         ,
         directives: [...ctor._directives.values(), ROUTER_DIRECTIVES]
 
@@ -105,6 +113,7 @@ function createElement(type='undefined', props, ...children) {
             props2.push(`[ngIf]="!get('${props.ifNot.slice(1)}')"`)
         }
         if (props && props.each){
+            const [varId, op, dataId] = props.each.split(' ');
 
             props2.push(`ngFor #${varId} [ngForOf]="get('${dataId.slice(1)}')"`)
         }
@@ -147,20 +156,23 @@ function parseBindingExpression(p) {
 
     if (p[0] === '(' && p.endsWith(')')) {
 
-        return `'${p.slice(1, p.length-1).replace(/\(:(\w+(\.\w+)*?)\)/g, (s, s1)=>(`'+get('${s1}')+'`))}'`;
+        return log(`'${p.slice(1, p.length-1).replace(/\(:(\w+(\.\w+)*?)\)/g, (s, s1)=>(`'+get('${s1}')+'`))}'`);
     }
 
     return p;
 }
 
 export function resolveNativeProp(k, v) {
+
+    const isFlatValue = !v || v[0] !== ':';
+
     let adapter = PROP_ADAPTERS[k];
 
     if (adapter) {
         return this::adapter(v);
     }
 
-    if (!v || v[0] !== ':') return k ? `${k}="${v}"` : v;
+    if (isFlatValue) return k ? `${k}="${v}"` : v;
 
     let [p, ...pipes] = v.slice(1).split('|');
 
