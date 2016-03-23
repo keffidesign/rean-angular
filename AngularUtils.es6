@@ -23,7 +23,7 @@ const PROP_ADAPTERS = {
 
         if (v[0]===':'){
             v = parseBindingExpression(v.slice(1));
-            return `[style]="${v}"`;
+            return `[ngStyle]="${v}"`;
         }
 
         const obj = (typeof v === 'string') ? v.split(';')
