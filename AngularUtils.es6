@@ -2,7 +2,10 @@ import {capitalize,properify, dashify} from 'reangulact/utils.es6';
 
 const {Component, DynamicComponentLoader, ElementRef} = ng.core;
 const {ROUTER_DIRECTIVES} = ng.router;
-
+const OPS ={
+    'is': '===',
+    'isnt': '!==b'
+}
 const PROP_ADAPTERS = {
     'id': (v) => `id="${v}"`
     ,
@@ -13,7 +16,18 @@ const PROP_ADAPTERS = {
         return `*ngFor="#${varId} of get('${dataId.slice(1)}')" attr.data-index="{{setState({'${varId}':${varId}})?${varId}:${varId}}}"`;
     }
     ,
-    'if': (v) => `*ngIf="get('${v.slice(1)}')"`
+    'if': (v) => {
+        let [ifExpr, ifOp, ifMatch]= v.split(' ');
+
+        let val = ifExpr.slice(1);
+
+        if (ifMatch!==undefined) {
+            ifMatch = (ifMatch[0]===':')?`get('${ifMatch.slice(1)}')`:`'${ifMatch}'`;
+            return log(`*ngIf="get('${val}') ${OPS[ifOp]} ${ifMatch}"`)
+        }
+
+        return `*ngIf="get('${val}')"`
+    }
     ,
     'ifNot': (v) => `*ngIf="!get('${v.slice(1)}')"`
     ,
