@@ -31,6 +31,8 @@ const PROP_ADAPTERS = {
     ,
     'ifNot': (v) => `*ngIf="!get('${v.slice(1)}')"`
     ,
+    'click': (v) => `(click)="getClicker('${v.slice(1)}')($event)"`
+    ,
     style(v){
 
         if (!v) return '';
@@ -56,7 +58,6 @@ const PROP_ADAPTERS = {
 
 const VALUE_ADAPTERS = {
     '': (v)=>`{{${v}}}`,
-    'click': (v)=>`(click)="${v}($event)"`,
     'change': (v)=>`(change)="${v}($event)"`,
     'scroll': (v)=>`(scroll)="${v}($event)"`
     ,
@@ -87,7 +88,7 @@ export function prepare(ctor) {
         ,
         inputs: ['props']
         ,
-        template: (createElement.apply(ctor, ctor.prototype.render()))
+        template: log(createElement.apply(ctor, ctor.prototype.render()))
         ,
         directives: [...ctor._directives.values(), ROUTER_DIRECTIVES]
 
@@ -109,6 +110,9 @@ export function prepare(ctor) {
 
 export function createElement(type='undefined', props, ...children) {
 
+    if (type==='else'){
+        return ``;
+    }
     if (type==='children'){
         return `<ng-content></ng-content>`
     }
@@ -170,7 +174,7 @@ function parseBindingExpression(p) {
 
     if (p[0] === '(' && p.endsWith(')')) {
 
-        return log(`'${p.slice(1, p.length-1).replace(/\(:(\w+(\.\w+)*?)\)/g, (s, s1)=>(`'+get('${s1}')+'`))}'`);
+        return (`'${p.slice(1, p.length-1).replace(/\(:(\w+(\.\w+)*?)\)/g, (s, s1)=>(`'+get('${s1}')+'`))}'`);
     }
 
     return p;
