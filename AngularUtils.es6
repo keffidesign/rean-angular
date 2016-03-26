@@ -107,7 +107,7 @@ export function prepare(ctor) {
     });
 }
 
-function createElement(type='undefined', props, ...children) {
+export function createElement(type='undefined', props, ...children) {
 
     if (type==='children'){
         return `<ng-content></ng-content>`
