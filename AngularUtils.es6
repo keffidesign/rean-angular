@@ -1,8 +1,10 @@
 import {capitalize,properify, dashify} from 'reangulact/utils.es6';
 
-const {Component, DynamicComponentLoader, ElementRef} = ng.core;
+const {Component, DynamicComponentLoader, ElementRef, Injector} = ng.core;
 const {ROUTER_DIRECTIVES} = ng.router;
-const OPS ={
+
+let COUNTER=0;
+const OPS = {
     'is': '===',
     'isnt': '!==b'
 }
@@ -21,8 +23,8 @@ const PROP_ADAPTERS = {
 
         let val = ifExpr.slice(1);
 
-        if (ifMatch!==undefined) {
-            ifMatch = (ifMatch[0]===':')?`get('${ifMatch.slice(1)}')`:`'${ifMatch}'`;
+        if (ifMatch !== undefined) {
+            ifMatch = (ifMatch[0] === ':') ? `get('${ifMatch.slice(1)}')` : `'${ifMatch}'`;
             return log(`*ngIf="get('${val}') ${OPS[ifOp]} ${ifMatch}"`)
         }
 
@@ -31,23 +33,21 @@ const PROP_ADAPTERS = {
     ,
     'ifNot': (v) => `*ngIf="!get('${v.slice(1)}')"`
     ,
-    'click': (v) => `(click)="getClicker('${v.slice(1)}')($event)"`
-    ,
     style(v){
 
         if (!v) return '';
 
-        if (v[0]===':'){
+        if (v[0] === ':') {
             v = parseBindingExpression(v.slice(1));
             return `[ngStyle]="${v}"`;
         }
 
         const obj = (typeof v === 'string') ? v.split(';')
-            .reduce((p, q)=>{
+            .reduce((p, q)=> {
                 const kv = q.split(':');
                 const k = kv[0].trim();
-                if (k){
-                    p[k] = (kv[1]||'').trim();
+                if (k) {
+                    p[k] = (kv[1] || '').trim();
                 }
                 return p;
             }, {}) : v;
@@ -58,8 +58,11 @@ const PROP_ADAPTERS = {
 
 const VALUE_ADAPTERS = {
     '': (v)=>`{{${v}}}`,
-    'change': (v)=>`(change)="${v}($event)"`,
+    'change': (v)=>`(change)="${v}($event)"`
+    ,
     'scroll': (v)=>`(scroll)="${v}($event)"`
+    ,
+    'click': (v, k) => `(click)="getClicker(${v}, '${k}')($event)"`
     ,
     ['class'](v){
         //console.log('class', v);
@@ -71,8 +74,8 @@ const VALUE_ADAPTERS = {
     '**': (v, k)=>`${k}:"${v}"`
 };
 
-function log(val){
-    console.log('==',val);
+function log(val) {
+    console.log('==', val);
     return val;
 }
 
@@ -94,13 +97,13 @@ export function prepare(ctor) {
 
     }).Class({
 
-        extends : ctor,
+        extends: ctor,
 
-        constructor: [DynamicComponentLoader,ElementRef, function (dcl, ref){
+        constructor: [Injector, ElementRef, function (injector, ref) {
 
-            this._dcl = dcl;
+            this._injector = injector;
             this._ref = ref;
-            this._directives = ctor._directives;
+            this._name = ctor.name + (COUNTER++);
 
             ctor.call(this);
         }]
@@ -108,36 +111,36 @@ export function prepare(ctor) {
     });
 }
 
-export function createElement(type='undefined', props, ...children) {
+export function createElement(type = 'undefined', props, ...children) {
 
-    if (type==='else'){
+    if (type === 'else') {
         return ``;
     }
-    if (type==='children'){
+    if (type === 'children') {
         return `<ng-content></ng-content>`
     }
-    let after='';
-    if (props && props.if){
+    let after = '';
+    if (props && props.if) {
         const ifNot = props.if;
-        after = children.filter((c)=>(c[0]==='else')).map(c => createElement.apply(this, ['block', {ifNot}, c[2]])).join('')
+        after = children.filter((c)=>(c[0] === 'else')).map(c => createElement.apply(this, ['block', {ifNot}, c[2]])).join('')
     }
 
-    if (type==='block'){
-        const props2=[]
-        if (props && props.if){
+    if (type === 'block') {
+        const props2 = []
+        if (props && props.if) {
             props2.push(`[ngIf]="get('${props.if.slice(1)}')"`)
         }
-        if (props && props.ifNot){
+        if (props && props.ifNot) {
             props2.push(`[ngIf]="!get('${props.ifNot.slice(1)}')"`)
         }
-        if (props && props.each){
+        if (props && props.each) {
             const [varId, op, dataId] = props.each.split(' ');
 
             props2.push(`ngFor #${varId} [ngForOf]="get('${dataId.slice(1)}')"`)
         }
         return stringifyComponent('template', props2,
-            children.map(c => (typeof c === 'string') ? resolveNativeProp.call(this, '', c.trim()) : createElement.apply(this, c))
-        )+after;
+                children.map(c => (typeof c === 'string') ? resolveNativeProp.call(this, '', c.trim()) : createElement.apply(this, c))
+            ) + after;
     }
 
     if (typeof type !== 'string') {
@@ -149,15 +152,15 @@ export function createElement(type='undefined', props, ...children) {
         props = this::resolveComponentProps(props);
 
         return stringifyComponent(typeName, props,
-            children.map(c => (typeof c === 'string') ? resolveNativeProp.call(this, '', c.trim()) : createElement.apply(this, c))
-        )+after;
+                children.map(c => (typeof c === 'string') ? resolveNativeProp.call(this, '', c.trim()) : createElement.apply(this, c))
+            ) + after;
     }
 
     return stringifyComponent(type,
-        Object.keys(props || {}).map((k) =>(resolveNativeProp.call(this, k, props[k])))
-        ,
-        children.map(c => (typeof c === 'string') ? resolveNativeProp.call(this, '', c.trim()) : createElement.apply(this, c))
-    )+after;
+            Object.keys(props || {}).map((k) =>(resolveNativeProp.call(this, k, props[k])))
+            ,
+            children.map(c => (typeof c === 'string') ? resolveNativeProp.call(this, '', c.trim()) : createElement.apply(this, c))
+        ) + after;
 }
 
 function parseBindingExpression(p) {
@@ -174,7 +177,7 @@ function parseBindingExpression(p) {
 
     if (p[0] === '(' && p.endsWith(')')) {
 
-        return (`'${p.slice(1, p.length-1).replace(/\(:(\w+(\.\w+)*?)\)/g, (s, s1)=>(`'+get('${s1}')+'`))}'`);
+        return (`'${p.slice(1, p.length - 1).replace(/\(:(\w+(\.\w+)*?)\)/g, (s, s1)=>(`'+get('${s1}')+'`))}'`);
     }
 
     return p;
@@ -233,7 +236,7 @@ export function resolveComponentProps(props, children) {
 
 };
 
-function resolveComponentProp(k: string, v) {
+function resolveComponentProp(k:string, v) {
 
 
     if (!v || v[0] !== ':') return `'${v}'`;

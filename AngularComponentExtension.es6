@@ -1,4 +1,5 @@
-const {Component, DynamicComponentLoader} = ng.core;
+const {Component, DynamicComponentLoader, } = ng.core;
+const {RouteParams} = ng.router;
 
 export default {
 
@@ -18,20 +19,36 @@ export default {
 
     ngOnChanges(diff){
 
-       //this.log('changes', diff);
 
         if(diff.props) {
 
             const props = diff.props.currentValue;
             if (!this.state){
 
-                this.update(this.getDefaults(props));
+                this.state = this.getDefaults(props);
 
             } else {
+
+                //this.log('changes', props);
 
                 this.update(props);
             }
 
         }
+    },
+
+    getRouteParams() {
+
+        const routeParams = this._injector.get(RouteParams);
+
+        return routeParams.params;
+    },
+
+
+    getClicker(fn, key) {
+
+        fn = fn || (ev=>{this.log(`No click handler ${key}`)})
+
+        return this.$[key] || (this.$[key] = (ev=>fn(ev, ev.currentTarget.dataset)));
     }
 }
