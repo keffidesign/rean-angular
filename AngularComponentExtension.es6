@@ -36,19 +36,10 @@ export default {
 
         }
     },
-
     getRouteParams() {
 
         const routeParams = this._injector.get(RouteParams);
 
         return routeParams.params;
-    },
-
-
-    getClicker(fn, key) {
-
-        fn = fn || (ev=>{this.log(`No click handler ${key}`)})
-
-        return this.$[key] || (this.$[key] = (ev=>fn(ev, ev.currentTarget.dataset)));
     }
 }
