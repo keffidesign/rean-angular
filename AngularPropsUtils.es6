@@ -22,7 +22,7 @@ function parseBindingExpression(p) {
 
 const OPS = {
     'is': '===',
-    'isnt': '!==b'
+    'isnt': '!=='
 }
 
 export const PROP_ADAPTERS = {
