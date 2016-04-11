@@ -11,7 +11,7 @@ function log(val) {
     return val;
 }
 
-export function prepare(ctor) {
+export function prepare(ctor, opts={}) {
 
     if (ctor.prepared) return ctor.prepared;
 
@@ -19,7 +19,7 @@ export function prepare(ctor) {
 
     return Component({
 
-        selector: dashify(ctor.name)
+        selector: opts.selector||dashify(ctor.name)
         ,
         inputs: ['props']
         ,
@@ -50,11 +50,18 @@ export function createChildren(children) {
 export function createElement(type = 'undefined', props, ...children) {
 
     if (type === 'else') {
+
         return ``;
     }
 
     if (type === 'children') {
+
         return `<ng-content></ng-content>`
+    }
+
+    if (type === 'routing') {
+
+        return `<router-outlet></router-outlet>`
     }
 
     let after = '';
