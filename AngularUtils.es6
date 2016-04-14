@@ -11,23 +11,25 @@ function log(val) {
     return val;
 }
 
-export function prepare(ctor, opts={}) {
+export function prepare(ctor, opts = {}) {
 
     if (ctor.prepared) return ctor.prepared;
 
     ctor._directives = new Map();
 
-    return Component({
+    const componentMeta = {
 
-        selector: opts.selector||dashify(ctor.name)
+        selector: opts.selector || dashify(ctor.name)
         ,
         inputs: ['props']
         ,
-        template: log(createElement.apply(ctor, ctor.prototype.render()))
+        template: createElement.apply(ctor, ctor.prototype.render())
         ,
         directives: [...ctor._directives.values(), ROUTER_DIRECTIVES]
 
-    }).Class({
+    };
+
+    const classMeta = {
 
         extends: ctor,
 
@@ -40,11 +42,21 @@ export function prepare(ctor, opts={}) {
             ctor.call(this);
         }]
 
-    });
+    };
+
+    const component = Component(componentMeta).Class(classMeta);
+
+    /**
+     * Push itself for recursions
+     */
+    componentMeta.directives.push(component);
+
+    return component;
+
 }
 
 export function createChildren(children) {
-    return children.map(c => (typeof c === 'string') ? this::resolveInnerText(c) : createElement.apply(this, c))
+    return children.map(c => (typeof c === 'string') ? this::resolveInnerText(c) : createElement.apply(this, c));
 }
 
 export function createElement(type = 'undefined', props, ...children) {
@@ -67,8 +79,23 @@ export function createElement(type = 'undefined', props, ...children) {
     let after = '';
     if (props && props.if) {
         const ifNot = props.if;
-        after = children.filter((c)=>(c[0] === 'else')).map(c => createElement.apply(this, ['block', {ifNot}, c[2]])).join('')
+        after = children.filter(c => c[0] === 'else').map(c => createElement.apply(this, ['block', {ifNot}, c[2]])).join('');
     }
+
+    /**
+     * Detect recursivity
+     */
+     children = children.map(c => {
+
+         if (c[0].name !== this.name) return c;
+
+         const resultProps = {};
+
+         this::resolveComponentProps(c[1], resultProps);
+
+         return stringifyComponent(dashify(this.name), resultProps);
+
+    });
 
     let typeName = type;
     const props2 = {};
@@ -98,7 +125,7 @@ export function createElement(type = 'undefined', props, ...children) {
 
             this._directives.set(typeName, prepare(type));
 
-            this::resolveComponentProps(props, props2);
+            this::resolveComponentProps(props, props2);//Why is it mutable?
 
         } else {
 
@@ -111,11 +138,7 @@ export function createElement(type = 'undefined', props, ...children) {
 
 export function stringifyComponent(type, props, children) {
 
-    const prefix = `${type} ${Object.keys(props).map(p => {
-
-        return (props[p] === undefined ? p : `${p}="${props[p]}"`)
-
-    }).join(' ')}`;
+    const prefix = `${type} ${Object.keys(props).map(p => (props[p] === undefined) ? p : `${p}="${props[p]}"`).join(' ')}`;
 
     const inner = children ? children.join('') : '';
 

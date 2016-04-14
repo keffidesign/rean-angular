@@ -124,24 +124,24 @@ export function resolveInnerText(v='') {
     return `{{${parseBindingExpression(p.trim())}}}`;
 }
 
-export function resolveNativeProps(props, result, prefix='NATIVE') {
+export function resolveNativeProps(props, result, prefix = 'NATIVE') {
 
-    Object.keys(props || {}).forEach((k) =>{
+    Object.keys(props || {}).forEach(k => {
         let v = props[k];
 
         const isLiteral = !v || v[0] !== ':';
 
-        const opts = {key:k,value:v, isLiteral , result};
+        const opts = {key: k, value: v, isLiteral , result};
 
         if (!isLiteral) {
             let [p, ...pipes] = v.slice(1).split('|');
             opts.pipes = pipes;
-            opts.expr = parseBindingExpression(p)
+            opts.expr = parseBindingExpression(p);
         } else {
-            opts.expr = `'${v}'`
+            opts.expr = `'${v}'`;
         }
 
-        let adapter = PROP_ADAPTERS[`${prefix}:${k}`]||PROP_ADAPTERS[k]||PROP_ADAPTERS[`${prefix}:*`];
+        let adapter = PROP_ADAPTERS[`${prefix}:${k}`] || PROP_ADAPTERS[k] || PROP_ADAPTERS[`${prefix}:*`];
 
         this::adapter(opts);
 
