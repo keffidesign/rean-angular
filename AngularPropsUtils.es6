@@ -121,7 +121,8 @@ export function resolveInnerText(v='') {
 
     let [p, ...pipes] = v.slice(1).split('|');
 
-    return `{{${parseBindingExpression(p.trim())}}}`;
+    return `<div #spawn>{{dynamicComponent(${parseBindingExpression(p.trim())})}}</div>`;
+    //return `{{dynamicComponent(${parseBindingExpression(p.trim())})}}`;
 }
 
 export function resolveNativeProps(props, result, prefix = 'NATIVE') {

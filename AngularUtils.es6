@@ -1,7 +1,7 @@
 import {capitalize,properify, dashify} from 'reangulact/utils.es6';
 import {resolveComponentProps, resolveNativeProps, resolveInnerText} from './AngularPropsUtils.es6';
 
-const {Component, ElementRef, Injector} = ng.core;
+const {Component, DynamicComponentLoader, ElementRef, Injector} = ng.core;
 const {ROUTER_DIRECTIVES} = ng.router;
 
 let COUNTER = 0;
@@ -23,7 +23,7 @@ export function prepare(ctor, opts = {}) {
         ,
         inputs: ['props']
         ,
-        template: createElement.apply(ctor, ctor.prototype.render())
+        template: log(createElement.apply(ctor, ctor.prototype.render()))
         ,
         directives: [...ctor._directives.values(), ROUTER_DIRECTIVES]
 
@@ -33,8 +33,9 @@ export function prepare(ctor, opts = {}) {
 
         extends: ctor,
 
-        constructor: [Injector, ElementRef, function (injector, ref) {
+        constructor: [DynamicComponentLoader, Injector, ElementRef, function (dcl, injector, ref) {
 
+            this._dcl = dcl;
             this._injector = injector;
             this._ref = ref;
             this._name = ctor.name + (COUNTER++);
@@ -68,12 +69,12 @@ export function createElement(type = 'undefined', props, ...children) {
 
     if (type === 'children') {
 
-        return `<ng-content></ng-content>`
+        return `<ng-content></ng-content>`;
     }
 
     if (type === 'routing') {
 
-        return `<router-outlet></router-outlet>`
+        return `<router-outlet></router-outlet>`;
     }
 
     let after = '';

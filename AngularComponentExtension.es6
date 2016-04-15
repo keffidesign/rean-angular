@@ -42,4 +42,40 @@ export default {
 
         return routeParams.params;
     }
+    ,
+    dynamicComponent(value, ...args) {
+
+        if (Array.isArray(value)) {
+
+            if (this._dynamiclyLoaded) {
+                console.log('this._dynamiclyLoaded');
+                return;
+            }
+
+            const testComponent = Component({
+                selector: 'test-component',
+                template: `<h1>Test dynamicComponentLoader${Date.now()}</h1>`
+            }).Class({
+                constructor: function () {}
+            });
+
+            console.log('dynamicComponent1234567890', this._dcl, this._ref, this, ...args);
+
+            setTimeout(() => this._dcl.loadAsRoot(testComponent, '#superTest'), 1000);
+            //this._dcl.loadIntoLocation(testComponent, this._ref, '.spawnClass');
+
+            //this._dcl.loadNextToLocation(testComponent, this._ref);
+
+            this._dynamiclyLoaded = true;
+
+            return '<span id="superTest"></span>'
+
+        } else {
+
+            return value;
+
+        }
+
+
+    }
 }
