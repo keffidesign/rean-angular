@@ -11,6 +11,10 @@ function log(val) {
     return val;
 }
 
+import DynamicComponent from './DynamicComponent.jsx';
+
+const dc = prepare(DynamicComponent);
+
 export function prepare(ctor, opts = {}) {
 
     if (ctor.prepared) return ctor.prepared;
@@ -52,6 +56,8 @@ export function prepare(ctor, opts = {}) {
      */
     componentMeta.directives.push(component);
 
+    dc && componentMeta.directives.push(dc);
+
     return component;
 
 }
@@ -75,6 +81,16 @@ export function createElement(type = 'undefined', props, ...children) {
     if (type === 'routing') {
 
         return `<router-outlet></router-outlet>`;
+    }
+
+    if (type === 'component') {
+
+        const newProps = {};
+
+        this::resolveComponentProps(props, newProps);
+
+        return stringifyComponent('dynamic-component', newProps);
+
     }
 
     let after = '';
@@ -146,4 +162,4 @@ export function stringifyComponent(type, props, children) {
     const isSingleTag = (type !== 'input' && type !== 'img');
 
     return isSingleTag ? `<${prefix}>${inner}</${type}>` : `<${prefix}/>`;
-};
+}

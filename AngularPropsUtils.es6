@@ -23,7 +23,7 @@ function parseBindingExpression(p) {
 const OPS = {
     'is': '===',
     'isnt': '!=='
-}
+};
 
 export const PROP_ADAPTERS = {
     'id': ({result, value}) => `id="${value}"`
@@ -121,7 +121,7 @@ export function resolveInnerText(v='') {
 
     let [p, ...pipes] = v.slice(1).split('|');
 
-    return `<div #spawn>{{dynamicComponent(${parseBindingExpression(p.trim())})}}</div>`;
+    return `{{${parseBindingExpression(p.trim())}}}`;
     //return `{{dynamicComponent(${parseBindingExpression(p.trim())})}}`;
 }
 
