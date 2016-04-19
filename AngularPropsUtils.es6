@@ -121,7 +121,8 @@ export function resolveInnerText(v='') {
 
     let [p, ...pipes] = v.slice(1).split('|');
 
-    return `{{${parseBindingExpression(p.trim())}}}`;
+     return `{{${parseBindingExpression(p.trim())}}}`;
+
     //return `{{dynamicComponent(${parseBindingExpression(p.trim())})}}`;
 }
 

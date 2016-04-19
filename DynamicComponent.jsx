@@ -8,7 +8,7 @@ export default class DynamicComponent extends Component {
 
         const type = this.get('type');
 
-        this._dcl.loadNextToLocation(prepare(type), this._ref);
+        this._dcl.loadNextToLocation(prepare(type), this._ref).then(ref => ref.instance.state = this.props);
 
     }
 
